@@ -1,1 +1,7 @@
-exportPattern("^[[:alpha:]]+")
+# exportPattern("^[[:alpha:]]+")
+export(computeMCA)
+export(getGeneRate)
+export(doRegression)
+export(computeScore)
+
+import(CelliD)

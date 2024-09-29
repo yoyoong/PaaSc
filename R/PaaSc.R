@@ -10,18 +10,17 @@
 #'
 #' @examples
 computeMCA <- function(object, nmcs = 50, features = NULL, slot = "data") {
-  use.features <- intersect(features, rownames(object))
   object <- NormalizeData(object)
-  object <- RunMCA(object, nmcs = nmcs, features = use.features, slot = slot)
+  object <- RunMCA(object, nmcs = nmcs, features = features, slot = slot)
   return(object)
 }
 
 
-#' Step2: Get gene occurrence rate in background and signature genesets
+#' Step2: Get gene occurrence rate in background and pathway genesets
 #'
 #' @param background.file Background genesets file, in GMT format.
-#' @param pathway.file Signature geneset file, in txt fotmat, one gene in one line.
-#' @param geneset.name Signature geneset name.
+#' @param pathway.file Pathway geneset file, in txt fotmat, one gene in one line.
+#' @param pathway.name Pathway geneset name.
 #'
 #' @return A data frame include 2 col, colnames is c("background", pathway.name).
 #' @export
@@ -35,7 +34,7 @@ getGeneRate <- function(background.file = NULL, pathway.file = NULL, pathway.nam
   background_genesets <- readGMT(background.file)
 
   # get signature geneset
-  signature_geneset <- setNames(list(readLines(pathway.file)), geneset.name)
+  signature_geneset <- setNames(list(readLines(pathway.file)), pathway.name)
   # merge background and signature genesets
   all_genesets <- c(background_genesets, signature_geneset)
 
@@ -59,9 +58,9 @@ getGeneRate <- function(background.file = NULL, pathway.file = NULL, pathway.nam
 
   # calculate the gene occurrence rate in background and signature genesets
   background_rate <- rowMeans(background_genesets_df)
-  signature_rate <- background_genesets_df[, c(geneset.name)]
+  signature_rate <- background_genesets_df[, c(pathway.name)]
   gene_rate <- data.frame(background_rate, signature_rate, check.names = FALSE)
-  names(gene_rate) <- c("background", geneset.name)
+  names(gene_rate) <- c("background", pathway.name)
 
   return (gene_rate)
 }
@@ -109,7 +108,6 @@ doRegression <- function(object, gene.rate = NULL) {
 }
 
 
-
 #' Step4: Compute the pathway activity score.
 #'
 #' @param object A Seurat object include MCA data in reductions slot.
@@ -120,24 +118,24 @@ doRegression <- function(object, gene.rate = NULL) {
 #'
 #' @examples
 computeScore <- function(object, regression.data = NULL) {
+  # filter the regression data
   pathway_regression_data = regression.data[!grepl("background", rownames(regression.data)), ]
-  pathway_regression_data = pathway_regression_data[, 1:20]
-
   pvalue_rowname = grepl("pvalue", rownames(pathway_regression_data))
   use_dims = colnames(pathway_regression_data)[pathway_regression_data[pvalue_rowname, ] < 0.05]
   use_regression_data = pathway_regression_data[!pvalue_rowname, use_dims]
 
+  # calculate the pathway activity score
   mca_embedding <- object@reductions$mca@cell.embeddings
   if (length(use_regression_data) > 0) {
-    use_embedding = embeddings[, use_dims]
+    use_embedding = mca_embedding[, use_dims]
     for(i in 1:length(use_regression_data)){
       use_embedding[,i] = use_embedding[,i] * use_regression_data[i]
     }
     activity_score = apply(use_embedding, 1, sum) / sum(abs(use_regression_data))
-    output = data.frame(barcode = names(activity_score), activity_score = activity_score)
+    score_data = data.frame(activity_score = activity_score)
   }
 
-  return(output)
+  return(score_data)
 }
 
 
