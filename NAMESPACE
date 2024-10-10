@@ -4,12 +4,4 @@ export(getGeneRate)
 export(doRegression)
 export(computeScore)
 
-import(tictoc)
-import(RcppArmadillo)
-
-importFrom(Rcpp,sourceCpp)
-importFrom(irlba,irlba)
-importFrom(matrixStats,rowVars)
-importFrom(stringr,str_length)
-
-useDynLib(PaaSc, .registration = TRUE)
+import(CelliD)
