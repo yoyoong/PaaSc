@@ -77,7 +77,7 @@ getGeneRate <- function(background.file = NULL, pathway.file = NULL, pathway.nam
 #' @examples
 doRegression <- function(object, gene.rate = NULL) {
   # get common gene of features and all genes
-  common_gene <- intersect(rownames(gene.rate), rownames(object))
+  common_gene <- intersect(rownames(gene.rate), rownames(object@reductions$mca@feature.loadings))
 
   # filter gene of gene rate and loading data
   gene_rate <- gene.rate[common_gene, ]
