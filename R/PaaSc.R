@@ -66,6 +66,20 @@ getGeneRate <- function(background.file = NULL, pathway.file = NULL, pathway.nam
 }
 
 
+readGMT = function(gmt_file_path, n_gene_thre = 0){
+  paths = readLines(gmt_file_path)
+  genesets = list()
+  for(i in 1:length(paths)){
+    t = strsplit(paths[i],'\t')[[1]]
+    genes = t[3:length(t)]
+    genes = genes[which(genes != "")]
+    genes = unique(genes)
+    genesets[[t[1]]] = genes
+  }
+  return (genesets)
+}
+
+
 #' Step3: Do regression of gene loading (Y) and gene rate (X)
 #'
 #' @param object A Seurat object include MCA data in reductions slot.
@@ -124,11 +138,11 @@ computeScore <- function(object, regression.data = NULL, pvalue = 0.05, weight =
   pathway_regression_data <- regression.data[!grepl("background", rownames(regression.data)), ]
   pvalue_rowname <- grepl("pvalue", rownames(pathway_regression_data))
   use_dims_flag <- pathway_regression_data[pvalue_rowname, ] < pvalue
-  use_dims <- colnames(pathway_regression_data)[use_dims_flag]
-  if (length(use_dims) == 0) {
+  if (sum(use_dims_flag) == 0) {
     message("No dimensions that p-value satisfied, all dimensions are used.")
-    use_dims <- colnames(pathway_regression_data)
+    use_dims_flag <- !use_dims_flag
   }
+  use_dims <- colnames(pathway_regression_data)[use_dims_flag]
 
   # calculate the pathway activity score
   mca_embedding <- object@reductions$mca@cell.embeddings
@@ -139,7 +153,7 @@ computeScore <- function(object, regression.data = NULL, pvalue = 0.05, weight =
   for(i in 1:length(use_regression_data)) {
     use_embedding[, i] = use_embedding[, i] * use_regression_data[i]
     if (weight) {
-      use_embedding[, i] = use_embedding[, i] * use_stdev[i]
+      use_embedding[, i] = use_embedding[, i] * use_stdev[i] / sum(use_stdev) * length(use_stdev)
     }
   }
   activity_score = apply(use_embedding, 1, sum) / sum(abs(use_regression_data))
@@ -149,16 +163,19 @@ computeScore <- function(object, regression.data = NULL, pvalue = 0.05, weight =
 }
 
 
-readGMT = function(gmt_file_path, n_gene_thre = 0){
-  paths = readLines(gmt_file_path)
-  genesets = list()
-  for(i in 1:length(paths)){
-    t = strsplit(paths[i],'\t')[[1]]
-    genes = t[3:length(t)]
-    genes = genes[which(genes != "")]
-    genes = unique(genes)
-    genesets[[t[1]]] = genes
-  }
-  return (genesets)
+#' Title Binarization the pathway activity score by Kmeans cluster.
+#'
+#' @param score.data A data frame store cell pathway activity score in column 1.
+#'
+#' @return Add a column "label" in score data, store the binarization label.
+#' @export
+#'
+#' @examples
+doBinarization <- function(score.data) {
+  kmeans_result <- kmeans(score.data[[1]], centers = 2)
+  centers <- kmeans_result$centers
+  threshold <- (centers[1] + centers[2]) / 2
+  score.data$label <- ifelse(score.data[[1]] > threshold, "positive", "negative")
+  return(score.data)
 }
 

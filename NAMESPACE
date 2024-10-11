@@ -5,3 +5,4 @@ export(doRegression)
 export(computeScore)
 
 import(CelliD)
+import(multimode)
