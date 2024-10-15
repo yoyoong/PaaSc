@@ -3,6 +3,7 @@ export(computeMCA)
 export(getGeneRate)
 export(doRegression)
 export(computeScore)
+export(doBinarization)
 
 import(CelliD)
-import(multimode)
+# import(multimode)

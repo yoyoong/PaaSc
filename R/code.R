@@ -1,4 +1,4 @@
-doBinarization <- function(score.data) {
+doBinarization2 <- function(score.data) {
   # fit bimodal distribution
   fit <- normalmixEM(score.data[[1]], k = 2, maxit = 1000, eps = 1e-6)
   mean1 <- fit$mu[1]
