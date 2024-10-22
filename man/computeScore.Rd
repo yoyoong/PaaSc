@@ -4,7 +4,13 @@
 \alias{computeScore}
 \title{Step4: Compute the pathway activity score.}
 \usage{
-computeScore(object, regression.data = NULL, pvalue = 0.05, weight = FALSE)
+computeScore(
+  object,
+  regression.data = NULL,
+  pvalue = 0.05,
+  weight = FALSE,
+  normalize = 1
+)
 }
 \arguments{
 \item{object}{A Seurat object include MCA data in reductions slot.}
@@ -14,6 +20,8 @@ computeScore(object, regression.data = NULL, pvalue = 0.05, weight = FALSE)
 \item{pvalue}{The cutoff p value of linear regression result.}
 
 \item{weight}{Whether calculate the weighted activity score, weighted means that the variance contribution rate of MCA reduction is used as the weight of each dimension.}
+
+\item{normalize}{Normalize flag, 0:Not normalized, 1:Z-Score normalized, 2-Background activity score normalized, default 1.}
 }
 \value{
 A data frame store cell pathways activity score.

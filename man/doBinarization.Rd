@@ -4,12 +4,12 @@
 \alias{doBinarization}
 \title{Title Binarization the pathway activity score by Kmeans cluster.}
 \usage{
-doBinarization(score.data)
+doBinarization(score.data, n.cluster = 2)
 }
 \arguments{
 \item{score.data}{A data frame store cell pathway activity score in column 1.}
 
-\item{n.cluster}{Number of clusters, 2 or 3 is recommended.}
+\item{n.cluster}{Number of clusters, 2 or 3 is recommended, default set to 2.}
 }
 \value{
 A data frame store the binarization label.
