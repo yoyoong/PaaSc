@@ -9,7 +9,7 @@ computeScore(
   regression.data = NULL,
   pvalue = 0.05,
   weight = FALSE,
-  normalize = 1
+  normalize = "z-socre"
 )
 }
 \arguments{
@@ -19,9 +19,11 @@ computeScore(
 
 \item{pvalue}{The cutoff p value of linear regression result.}
 
-\item{weight}{Whether calculate the weighted activity score, weighted means that the variance contribution rate of MCA reduction is used as the weight of each dimension.}
+\item{weight}{Whether calculate the weighted activity score, weighted means that
+the variance contribution rate of MCA reduction is used as the weight of each dimension.}
 
-\item{normalize}{Normalize flag, 0:Not normalized, 1:Z-Score normalized, 2-Background activity score normalized, default 1.}
+\item{normalize}{Normalize method, The choices are NULL, "z-socre" and "bg-score", default "z-socre".
+"z-socre" means z-score normalize, "bg-score" means normalize by background activity score.}
 }
 \value{
 A data frame store cell pathways activity score.

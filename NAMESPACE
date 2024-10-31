@@ -6,4 +6,5 @@ export(computeScore)
 export(doBinarization)
 
 import(CelliD)
+import(mixtools)
 # import(multimode)

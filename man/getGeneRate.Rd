@@ -9,7 +9,8 @@ getGeneRate(background.file = NULL, pathway.geneset = NULL)
 \arguments{
 \item{background.file}{Background genesets file, in GMT format.}
 
-\item{pathway.geneset}{Pathway geneset, a R object of list which include tags (pathway name) and values (gene list).}
+\item{pathway.geneset}{Pathway geneset, a R object of list which include
+tags (pathway name) and values (gene list).}
 }
 \value{
 A data frame include background and pathways gene rate.
