@@ -4,10 +4,10 @@
 \alias{getGeneRate}
 \title{Step2: Get gene occurrence rate in background and pathway genesets}
 \usage{
-getGeneRate(background.file = NULL, pathway.geneset = NULL)
+getGeneRate(background.geneset = NULL, pathway.geneset = NULL)
 }
 \arguments{
-\item{background.file}{Background genesets file, in GMT format.}
+\item{background.geneset}{Background genesets file name (in GMT format) or R list object.}
 
 \item{pathway.geneset}{Pathway geneset, a R object of list which include
 tags (pathway name) and values (gene list).}

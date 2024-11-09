@@ -52,7 +52,7 @@ getGeneRate <- function(background.geneset = NULL, pathway.geneset = NULL) {
 
   # get all unique genes from all genesets
   all_gene <- unique(unlist(all_genesets, use.names = FALSE))
-  geneset_names <- names(all_genesets)
+  geneset_names <- names(pathway_geneset)
   # build geneset-gene matrix, row is gene name, col is geneset name
   # Value is whether this gene exist in this geneset, 1-exist 0-noexist
   geneset_gene_matrix <- matrix(0, nrow = length(all_gene), ncol = length(geneset_names),

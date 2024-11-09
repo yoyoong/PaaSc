@@ -9,7 +9,7 @@ computeScore(
   regression.data = NULL,
   pvalue = 0.05,
   weight = FALSE,
-  normalize = "z-socre"
+  normalize = "z-score"
 )
 }
 \arguments{
@@ -22,7 +22,7 @@ computeScore(
 \item{weight}{Whether calculate the weighted activity score, weighted means that
 the variance contribution rate of MCA reduction is used as the weight of each dimension.}
 
-\item{normalize}{Normalize method, The choices are NULL, "z-socre" and "bg-score", default "z-socre".
+\item{normalize}{Normalize method, The choices are NULL, "z-score" and "bg-score", default "z-score".
 "z-socre" means z-score normalize, "bg-score" means normalize by background activity score.}
 }
 \value{
