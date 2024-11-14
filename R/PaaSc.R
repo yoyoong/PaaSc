@@ -31,13 +31,13 @@ getGeneRate <- function(background.geneset = NULL, pathway.geneset = NULL) {
   if (class(background.geneset) == "list") {
     background_genesets <- background.geneset
   } else {
-    if (!file.exists(background.file)) {
-      stop(paste0("Cannot find file: ", background.file))
+    if (!file.exists(background.geneset)) {
+      stop(paste0("Cannot find file: ", background.geneset))
     }
-    background_genesets <- readGMT(background.file)
+    background_genesets <- readGMT(background.geneset)
   }
 
-  # get signature geneset
+  # get pathway geneset
   if (class(pathway.geneset) != "list") {
     pathway_geneset <- list(pathway.geneset)
   } else {
@@ -52,7 +52,7 @@ getGeneRate <- function(background.geneset = NULL, pathway.geneset = NULL) {
 
   # get all unique genes from all genesets
   all_gene <- unique(unlist(all_genesets, use.names = FALSE))
-  geneset_names <- names(pathway_geneset)
+  geneset_names <- names(all_genesets)
   # build geneset-gene matrix, row is gene name, col is geneset name
   # Value is whether this gene exist in this geneset, 1-exist 0-noexist
   geneset_gene_matrix <- matrix(0, nrow = length(all_gene), ncol = length(geneset_names),
@@ -66,14 +66,13 @@ getGeneRate <- function(background.geneset = NULL, pathway.geneset = NULL) {
     }
   }
   background_genesets_df <- data.frame(geneset_gene_matrix)
-  pathway.name <- tail(colnames(background_genesets_df), length(pathway.geneset))
 
   # calculate the gene occurrence rate in background and pathway genesets
   background_rate <- rowMeans(background_genesets_df)
-  signature_rate <- background_genesets_df[, pathway.name]
+  pathway_rate <- background_genesets_df[, names(pathway_geneset)]
 
-  gene_rate <- data.frame(background_rate, signature_rate)
-  names(gene_rate) <- c("background", pathway.name)
+  gene_rate <- data.frame(background_rate, pathway_rate)
+  names(gene_rate) <- c("background", names(pathway_geneset))
 
   return (gene_rate)
 }
@@ -292,24 +291,100 @@ doBinarization <- function(score.data, n.cluster = 2, method = "GMM") {
 #' Calculate mutual information.
 #'
 #' @param x A random variable (vector/factor).
-#' @param y Another random variable (vector/factor).
-#' @param num_bins The number of intervals into which x and y is to be cut.
-#' @param num_permutations Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test.
+#' @param y Another random variable (vector/factor), or dataframe which each columns is a random variable.
+#' @param num_bins The number of intervals into which random variable is to be cut, default set to 20.
+#' @param num_permutations Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test. Default set to 1000.
 #'
-#' @return A list include MI and pvalue (if num_permutations > 0).
+#' @return A data frame store mutual information, and pvalue if num_permutations > 0.
 #' @export
 #'
 #' @examples
-calculateMI <- function(x, y, num_bins = 10, num_permutations = 0) {
-  # Input validation
-  if (length(x) != length(y)) {
-    stop("x and y must have the same length")
+calculateMI <- function(x, y, num_bins = 20, num_permutations = 1000) {
+  message("Calculate mutual information...")
+  result <- NULL
+
+  if (class(y) == "data.frame") {
+
+    if (length(x_bins) != nrow(y)) {
+      stop("x and y must have the same length")
+    }
+
+    result <- matrix(0, nrow = ncol(y), ncol = 2, dimnames = list(names(y), c("MI", "pvalue")))
+    for (col in names(y)) {
+      # Create bins
+      x_bins <- cut(x, breaks = num_bins, labels = FALSE)
+      y_bins <- cut(y[[col]], breaks = num_bins, labels = FALSE)
+
+      # Calculate mutual information
+      mi <- compute.2d.MI(x_bins, y_bins)
+      result[col, "MI"] <- mi
+    }
+
+    message("Do permutations...")
+    if (num_permutations > 0) {
+      # Do permutations
+      permuted_mi_list <- numeric(num_permutations)
+      for(n in 1:num_permutations) {
+        y_vector <- as.vector(unlist(y))
+        permuted_y <- sample(y_vector, nrow(y))
+        permuted_y_bins <- cut(permuted_y, breaks = num_bins, labels = FALSE)
+        permuted_mi <- compute.2d.MI(x_bins, permuted_y_bins)
+        permuted_mi_list[n] <- permuted_mi
+      }
+
+      mean_val <- mean(permuted_mi_list)
+      sd_val <- sd(permuted_mi_list)
+      for (row in rownames(result)) {
+        mi <- result[row, "MI"]
+
+        # Calculate p-value
+        p_value <- pnorm(mi, mean = mean_val, sd = sd_val, lower.tail = FALSE)
+        result[row, "pvalue"] <- p_value
+      }
+    } else {
+      result[, "pvalue"] <- NA
+    }
+  } else {
+    result <- list()
+
+    # Create bins
+    x_bins <- cut(x, breaks = num_bins, labels = FALSE)
+    y_bins <- cut(y, breaks = num_bins, labels = FALSE)
+
+    if (length(x_bins) != length(y_bins)) {
+      stop("x and y must have the same length")
+    }
+
+    # Calculate mutual information
+    mi <- compute.2d.MI(x_bins, y_bins)
+    result["MI"] <- mi
+
+    message("Do permutations...")
+    if (num_permutations > 0) {
+      # Do permutations
+      permuted_mi_list <- numeric(num_permutations)
+      for(n in 1:num_permutations) {
+        permuted_y_bins <- sample(y_bins)
+        permuted_mi <- compute.2d.MI(x_bins, permuted_y_bins)
+        permuted_mi_list[n] <- permuted_mi
+      }
+
+      # Calculate p-value
+      mean_val <- mean(permuted_mi_list)
+      sd_val <- sd(permuted_mi_list)
+      p_value <- pnorm(mi, mean = mean_val, sd = sd_val, lower.tail = FALSE)
+
+      result["pvalue"] <- p_value
+    } else {
+      result["pvalue"] <- NA
+    }
   }
 
-  # Create bins
-  x_bins <- cut(x, breaks = num_bins, labels = FALSE)
-  y_bins <- cut(y, breaks = num_bins, labels = FALSE)
+  result_df <- data.frame(result)
+  return(result_df)
+}
 
+compute.2d.MI <- function(x_bins, y_bins) {
   # Calculate marginal probabilities and joint probabilities
   joint_freq <- table(x_bins, y_bins)
   p_x <- rowSums(joint_freq) / sum(joint_freq)
@@ -325,40 +400,8 @@ calculateMI <- function(x, y, num_bins = 10, num_permutations = 0) {
       }
     }
   }
-  mi <- as.numeric(mi)
 
-  if (num_permutations > 0) {
-    # Do permutations
-    permuted_mi_list <- numeric(num_permutations)
-    for(n in 1:num_permutations) {
-      permuted_y <- sample(y)
-      permuted_y_bins <- cut(permuted_y, breaks = num_bins, labels = FALSE)
-      permuted_joint_freq <- table(x_bins, permuted_y_bins)
-      permuted_p_x <- rowSums(permuted_joint_freq) / sum(permuted_joint_freq)
-      permuted_p_y <- colSums(permuted_joint_freq) / sum(permuted_joint_freq)
-      permuted_p_xy <- permuted_joint_freq / sum(permuted_joint_freq)
-      permuted_mi <- 0
-      for (i in 1:nrow(permuted_p_xy)) {
-        for (j in 1:ncol(permuted_p_xy)) {
-          if (permuted_p_xy[i,j] > 0) {
-            permuted_mi <- permuted_mi + permuted_p_xy[i,j] *
-              log(permuted_p_xy[i,j] / (permuted_p_x[i] * permuted_p_y[j]))
-          }
-        }
-      }
-      permuted_mi_list[n] <- permuted_mi
-    }
-
-    # Calculate p-value
-    mean_val <- mean(permuted_mi_list)
-    sd_val <- sd(permuted_mi_list)
-    p_value <- pnorm(mi, mean = mean_val, sd = sd_val, lower.tail = FALSE)
-
-    return(list(MI = mi, pvalue = p_value))
-  } else {
-    return(list(MI = mi))
-  }
-
+  return(as.numeric(mi))
 }
 
 
@@ -366,28 +409,104 @@ calculateMI <- function(x, y, num_bins = 10, num_permutations = 0) {
 #'
 #' @param x A random variable (vector/factor) on the first axis.
 #' @param y A random variable (vector/factor) on the second axis.
-#' @param z The random variable (vector/factor) to be calculate to x and y.
-#' @param num_bins The number of intervals into which x, y and z is to be cut.
-#' @param num_permutations Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test.
+#' @param z The random variable (vector/factor) or dataframe (each columns is a random variable) to be calculate spatial mutual information to x and y.
+#' @param num_bins The number of intervals into which x, y and z is to be cut, default set to 20.
+#' @param num_permutations Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test. Default set to 1000.
 #'
-#' @return A list include MI and pvalue (if num_permutations > 0).
+#' @return A data frame store spatial mutual information, and pvalue if num_permutations > 0.
 #' @export
 #'
 #' @examples
-calculateSpatialMI <- function(x, y, z, num_bins = 10, num_permutations = 0) {
-  # Input validation
-  if (length(x) != length(y) || length(x) != length(z)) {
-    stop("x, y, and z must have the same length")
+calculateSpatialMI <- function(x, y, z, num_bins = 20, num_permutations = 1000) {
+  message("Calculate spatial mutual information...")
+  result <- NULL
+
+  if (class(z) == "data.frame") {
+    # Input validation
+    if (length(x) != length(y) || length(x) != nrow(z)) {
+      stop("x, y, and z must have the same length")
+    }
+
+    result <- matrix(0, nrow = ncol(z), ncol = 2, dimnames = list(names(z), c("MI", "pvalue")))
+    for (col in names(z)) {
+      # Create bins
+      x_bins <- cut(x, breaks = num_bins, labels = FALSE)
+      y_bins <- cut(y, breaks = num_bins, labels = FALSE)
+      z_bins <- cut(z[[col]], breaks = num_bins, labels = FALSE)
+
+      # Calculate mutual information
+      mi <- compute.3d.MI(x_bins, y_bins, z_bins)
+      result[col, "MI"] <- mi
+    }
+
+    if (num_permutations > 0) {
+      message("Do permutations...")
+      # Do permutations
+      permuted_mi_list <- numeric(num_permutations)
+      for(n in 1:num_permutations) {
+        z_vector <- as.vector(unlist(z))
+        permuted_z <- sample(z_vector, nrow(z))
+        permuted_z_bins <- cut(permuted_z, breaks = num_bins, labels = FALSE)
+        permuted_mi <- compute.3d.MI(x_bins, y_bins, permuted_z_bins)
+        permuted_mi_list[n] <- permuted_mi
+      }
+
+      mean_val <- mean(permuted_mi_list)
+      sd_val <- sd(permuted_mi_list)
+      for (row in rownames(result)) {
+        mi <- result[row, "MI"]
+
+        # Calculate p-value
+        p_value <- pnorm(mi, mean = mean_val, sd = sd_val, lower.tail = FALSE)
+        result[row, "pvalue"] <- p_value
+      }
+    } else {
+      result[, "pvalue"] <- NA
+    }
+  } else {
+    result <- list()
+    # Input validation
+    if (length(x) != length(y) || length(x) != length(z)) {
+      stop("x, y, and z must have the same length")
+    }
+
+    # Create spatial bins using 2D histogram
+    x_bins <- cut(x, breaks = num_bins, labels = FALSE)
+    y_bins <- cut(y, breaks = num_bins, labels = FALSE)
+    z_bins <- cut(z, breaks = num_bins, labels = FALSE)
+
+    # Calculate mutual information
+    mi <- compute.3d.MI(x_bins, y_bins, z_bins)
+    result["MI"] <- mi
+
+    message("Do permutations...")
+    if (num_permutations > 0) {
+      # Do permutations
+      permuted_mi_list <- numeric(num_permutations)
+      for(n in 1:num_permutations) {
+        permuted_z_bins <- sample(z_bins)
+        permuted_mi <- compute.3d.MI(x_bins, y_bins, z_bins)
+        permuted_mi_list[n] <- permuted_mi
+      }
+
+      # Calculate p-value
+      mean_val <- mean(permuted_mi_list)
+      sd_val <- sd(permuted_mi_list)
+      p_value <- pnorm(mi, mean = mean_val, sd = sd_val, lower.tail = FALSE)
+
+      result["pvalue"] <- p_value
+    } else {
+      result["pvalue"] <- NA
+    }
   }
 
-  # Create spatial bins using 2D histogram
-  x_bins <- cut(x, breaks = num_bins, labels = FALSE)
-  y_bins <- cut(y, breaks = num_bins, labels = FALSE)
-  z_bins <- cut(z, breaks = num_bins, labels = FALSE)
-  xy_bins <- paste(x_bins, y_bins, sep = "_")
-  # xyz_bins <- paste(x_bins, y_bins, z_bins, sep = "_")
+  result_df <- data.frame(result)
+  return(result_df)
+}
 
+compute.3d.MI <- function(x_bins, y_bins, z_bins) {
   # Calculate joint frequencies for spatial location and z
+  xy_bins <- paste(x_bins, y_bins, sep = "_")
   joint_freq <- table(xy_bins, z_bins)
 
   # Calculate marginal probabilities and joint probabilities
@@ -404,39 +523,7 @@ calculateSpatialMI <- function(x, y, z, num_bins = 10, num_permutations = 0) {
       }
     }
   }
-  mi <- as.numeric(mi)
 
-  if (num_permutations > 0) {
-    # Do permutations
-    permuted_mi_list <- numeric(num_permutations)
-    for(n in 1:num_permutations) {
-      permuted_z <- sample(z)
-      permuted_z_bins <- cut(permuted_z, breaks = num_bins, labels = FALSE)
-      permuted_joint_freq <- table(xy_bins, permuted_z_bins)
-      permuted_p_xy <- rowSums(permuted_joint_freq) / sum(permuted_joint_freq)
-      permuted_p_z <- colSums(permuted_joint_freq) / sum(permuted_joint_freq)
-      permuted_p_xyz <- permuted_joint_freq / sum(permuted_joint_freq)
-      permuted_mi <- 0
-      for (i in 1:nrow(permuted_p_xyz)) {
-        for (j in 1:ncol(permuted_p_xyz)) {
-          if (permuted_p_xyz[i,j] > 0) {
-            permuted_mi <- permuted_mi + permuted_p_xyz[i,j] *
-              log(permuted_p_xyz[i,j] / (permuted_p_xy[i] * permuted_p_z[j]))
-          }
-        }
-      }
-      permuted_mi_list[n] <- permuted_mi
-    }
-
-    # Calculate p-value
-    mean_val <- mean(permuted_mi_list)
-    sd_val <- sd(permuted_mi_list)
-    p_value <- pnorm(mi, mean = mean_val, sd = sd_val, lower.tail = FALSE)
-
-    return(list(MI = mi, pvalue = p_value))
-  } else {
-    return(list(MI = mi))
-  }
-
+  return(as.numeric(mi))
 }
 
