@@ -4,21 +4,21 @@
 \alias{calculateSpatialMI}
 \title{Calculate spatial mutual information (z to x,y).}
 \usage{
-calculateSpatialMI(x, y, z, num_bins = 10, num_permutations = 0)
+calculateSpatialMI(x, y, z, num_bins = 20, num_permutations = 100)
 }
 \arguments{
 \item{x}{A random variable (vector/factor) on the first axis.}
 
 \item{y}{A random variable (vector/factor) on the second axis.}
 
-\item{z}{The random variable (vector/factor) to be calculate to x and y.}
+\item{z}{The random variable (vector/factor) or dataframe (each columns is a random variable) to be calculate spatial mutual information to x and y.}
 
-\item{num_bins}{The number of intervals into which x, y and z is to be cut.}
+\item{num_bins}{The number of intervals into which x, y and z is to be cut, default set to 20.}
 
-\item{num_permutations}{Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test.}
+\item{num_permutations}{Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test. Default set to 100.}
 }
 \value{
-A list include MI and pvalue (if num_permutations > 0).
+A data frame store spatial mutual information, and pvalue if num_permutations > 0.
 }
 \description{
 Calculate spatial mutual information (z to x,y).

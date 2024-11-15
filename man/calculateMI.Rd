@@ -4,19 +4,19 @@
 \alias{calculateMI}
 \title{Calculate mutual information.}
 \usage{
-calculateMI(x, y, num_bins = 10, num_permutations = 0)
+calculateMI(x, y, num_bins = 20, num_permutations = 100)
 }
 \arguments{
 \item{x}{A random variable (vector/factor).}
 
-\item{y}{Another random variable (vector/factor).}
+\item{y}{Another random variable (vector/factor), or dataframe which each columns is a random variable.}
 
-\item{num_bins}{The number of intervals into which x and y is to be cut.}
+\item{num_bins}{The number of intervals into which random variable is to be cut, default set to 20.}
 
-\item{num_permutations}{Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test.}
+\item{num_permutations}{Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test. Default set to 100.}
 }
 \value{
-A list include MI and pvalue (if num_permutations > 0).
+A data frame store mutual information, and pvalue if num_permutations > 0.
 }
 \description{
 Calculate mutual information.

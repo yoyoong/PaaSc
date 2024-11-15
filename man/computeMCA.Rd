@@ -4,7 +4,7 @@
 \alias{computeMCA}
 \title{Step1: compute MCA loading and embedding}
 \usage{
-computeMCA(object, nmcs = 50, features = NULL, slot = "data")
+computeMCA(object, nmcs = 50, features = NULL, slot = "data", assay = "RNA")
 }
 \arguments{
 \item{object}{A Seurat object.}
@@ -14,6 +14,8 @@ computeMCA(object, nmcs = 50, features = NULL, slot = "data")
 \item{features}{Character vector of feature names. If not specified all features will be taken.}
 
 \item{slot}{The slot to pull expression data for Seurat, default set to "data".}
+
+\item{assay}{Name of Assay MCA is being run on.}
 }
 \value{
 Seurat object with MCA calculation stored in the reductions slot.
