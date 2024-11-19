@@ -2,19 +2,18 @@
 % Please edit documentation in R/PaaSc.R
 \name{getGeneRate}
 \alias{getGeneRate}
-\title{Step2: Get gene occurrence rate in background and pathway genesets}
+\title{Get gene occurrence rate in background and pathway genesets}
 \usage{
 getGeneRate(background.geneset = NULL, pathway.geneset = NULL)
 }
 \arguments{
 \item{background.geneset}{Background genesets file name (in GMT format) or R list object.}
 
-\item{pathway.geneset}{Pathway geneset, a R object of list which include
-tags (pathway name) and values (gene list).}
+\item{pathway.geneset}{Pathway geneset, a R object of list which include tags (pathway name) and values (gene list).}
 }
 \value{
 A data frame include background and pathways gene rate.
 }
 \description{
-Step2: Get gene occurrence rate in background and pathway genesets
+Get gene occurrence rate in background and pathway genesets
 }

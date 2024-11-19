@@ -11,8 +11,7 @@ doBinarization(score.data, n.cluster = 2, method = "GMM")
 
 \item{n.cluster}{Number of clusters, 2 or 3 is recommended, default set to 2.}
 
-\item{method}{Binarization method, The choices are "GMM", "kmeans", default set to "GMM".
-"GMM" is Gaussian Mixture Model, "kmeans" is K-means cluster.}
+\item{method}{Binarization method, The choices are "GMM", "kmeans", default set to "GMM". "GMM" is Gaussian Mixture Model, "kmeans" is K-means cluster.}
 }
 \value{
 A data frame store the binarization label.

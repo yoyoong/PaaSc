@@ -2,24 +2,24 @@
 % Please edit documentation in R/PaaSc.R
 \name{computeMCA}
 \alias{computeMCA}
-\title{Step1: compute MCA loading and embedding}
+\title{Compute MCA loading and embedding}
 \usage{
-computeMCA(object, nmcs = 50, features = NULL, slot = "data", assay = "RNA")
+computeMCA(object, nmcs = 20, features = NULL, slot = "data", assay = "RNA")
 }
 \arguments{
 \item{object}{A Seurat object.}
 
-\item{nmcs}{Number of components to compute and store, default set to 50.}
+\item{nmcs}{Number of components to compute and store, default set to 20.}
 
 \item{features}{Character vector of feature names. If not specified all features will be taken.}
 
 \item{slot}{The slot to pull expression data for Seurat, default set to "data".}
 
-\item{assay}{Name of Assay MCA is being run on.}
+\item{assay}{Name of Assay MCA is being run on, default set to "RNA".}
 }
 \value{
 Seurat object with MCA calculation stored in the reductions slot.
 }
 \description{
-Step1: compute MCA loading and embedding
+Compute MCA loading and embedding
 }
