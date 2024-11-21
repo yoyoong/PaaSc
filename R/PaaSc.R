@@ -188,7 +188,7 @@ computeScore <- function(object, regression.data = NULL, pvalue = 0.05, weight =
   score_name_list <- sub(".pvalue", "", pvalue_rowname)
   score_data <- matrix(0, nrow = nrow(mca_embedding), ncol = length(score_name_list),
                        dimnames = list(rownames(mca_embedding), score_name_list))
-  if (normalize == "bg-score") {
+  if (!is.null(normalize) & normalize == "bg-score") {
     background_regression_data <- regression.data[grepl("background", rownames(regression.data)), ]
     background_pvalue_rowname <- rownames(background_regression_data)[grepl(".pvalue", rownames(background_regression_data))]
     background_score_name_list <- sub(".pvalue", "", background_pvalue_rowname)
@@ -205,7 +205,7 @@ computeScore <- function(object, regression.data = NULL, pvalue = 0.05, weight =
     } else {
       use_dims_flag <- regression_data_pathway_pvalue < pvalue
       if (sum(use_dims_flag) == 0) {
-        message(paste(pathway_name, "don't have dimensions that p-value satisfied, all dimensions are used."))
+        # message(paste(pathway_name, "don't have dimensions that p-value satisfied, all dimensions are used."))
         use_dims_flag <- !use_dims_flag
       }
       use_dims <- colnames(regression_data)[use_dims_flag]
@@ -224,10 +224,10 @@ computeScore <- function(object, regression.data = NULL, pvalue = 0.05, weight =
       }
       activity_score = apply(use_embedding, 1, sum) / sum(abs(use_regression_data))
 
-      if (normalize == "z-score") { # Z-score normalize
+      if (!is.null(normalize) & normalize == "z-score") { # Z-score normalize
         activity_score <- (activity_score - mean(activity_score)) / sd(activity_score)
       }
-      if (normalize == "bg-score") { # normalize by background activity score
+      if (!is.null(normalize) & normalize == "bg-score") { # normalize by background activity score
         use_background_t_name <- paste0(pathway_name, '.background.t')
         use_background_dims <- use_dims
         use_background_regression_data = background_regression_data[use_background_t_name, use_background_dims]
