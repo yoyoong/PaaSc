@@ -49,47 +49,23 @@ getGeneRate <- function(background.geneset = NULL, pathway.geneset = NULL) {
     names(pathway_geneset) <- paste0("pathway", 1:length(pathway_geneset))
   }
 
-  # merge background and signature genesets
+  # get all gene name
   all_genesets <- removeDuplicates(c(background_genesets, pathway_geneset))
-
-  # get all unique genes from all genesets
   all_gene <- unique(unlist(all_genesets, use.names = FALSE))
-  geneset_names <- names(all_genesets)
-  # build geneset-gene matrix, row is gene name, col is geneset name
-  # Value is whether this gene exist in this geneset, 1-exist 0-noexist
-  geneset_gene_matrix <- matrix(0, nrow = length(all_gene), ncol = length(geneset_names),
-                                dimnames = list(all_gene, geneset_names))
-  for (name in geneset_names) {
-    current_list <- all_genesets[[name]]
-    for (value in all_gene) {
-      if (value %in% current_list) {
-        geneset_gene_matrix[value == all_gene, name == geneset_names] <- 1
-      }
-    }
-  }
-  background_genesets_df <- data.frame(geneset_gene_matrix)
 
-  # calculate the gene occurrence rate in background and pathway genesets
-  background_rate <- rowMeans(background_genesets_df)
-  pathway_rate <- background_genesets_df[, names(pathway_geneset)]
+  background_matrix <- do.call('cbind', lapply(background_genesets, function(x) all_gene %in% x))
+  background <- apply(background_matrix, 1, mean)
+  pathway_matrix <- do.call('cbind', lapply(pathway_geneset, function(x) ifelse(all_gene %in% x, 1, 0)))
+  gene_rate = cbind(background, pathway_matrix)
+  rownames(gene_rate) <- all_gene
 
-  gene_rate <- data.frame(background_rate, pathway_rate)
-  names(gene_rate) <- c("background", names(pathway_geneset))
-
-  return (gene_rate)
+  return (data.frame(gene_rate))
 }
 
-
-readGMT = function(gmt_file_path, n_gene_thre = 0){
-  paths = readLines(gmt_file_path)
-  genesets = list()
-  for(i in 1:length(paths)){
-    t = strsplit(paths[i],'\t')[[1]]
-    genes = t[3:length(t)]
-    genes = genes[which(genes != "")]
-    genes = unique(genes)
-    genesets[[t[1]]] = genes
-  }
+readGMT = function(gmt_file_path){
+  chunks <- strsplit(readLines(gmt_file_path), '\t')
+  genesets <- lapply(chunks, function(x) setdiff(x[3:length(x)], ''))
+  names(genesets) <- sapply(chunks, function(x) x[1])
   return (genesets)
 }
 
@@ -251,7 +227,7 @@ computeScore <- function(object, regression.data = NULL, pvalue = 0.05, weight =
 }
 
 
-#' Title Binarization the pathway activity score by Kmeans cluster.
+#' Binarization the pathway activity score.
 #'
 #' @param score.data A data frame store cell pathway activity score in column 1.
 #' @param n.cluster Number of clusters, 2 or 3 is recommended, default set to 2.

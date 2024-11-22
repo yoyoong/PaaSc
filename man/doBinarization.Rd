@@ -2,7 +2,7 @@
 % Please edit documentation in R/PaaSc.R
 \name{doBinarization}
 \alias{doBinarization}
-\title{Title Binarization the pathway activity score by Kmeans cluster.}
+\title{Binarization the pathway activity score.}
 \usage{
 doBinarization(score.data, n.cluster = 2, method = "GMM")
 }
@@ -17,5 +17,5 @@ doBinarization(score.data, n.cluster = 2, method = "GMM")
 A data frame store the binarization label.
 }
 \description{
-Title Binarization the pathway activity score by Kmeans cluster.
+Binarization the pathway activity score.
 }
