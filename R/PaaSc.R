@@ -54,9 +54,10 @@ getGeneRate <- function(background.geneset = NULL, pathway.geneset = NULL) {
   all_gene <- unique(unlist(all_genesets, use.names = FALSE))
 
   background_matrix <- do.call('cbind', lapply(background_genesets, function(x) all_gene %in% x))
-  background <- apply(background_matrix, 1, mean)
+  background_col <- apply(background_matrix, 1, mean)
   pathway_matrix <- do.call('cbind', lapply(pathway_geneset, function(x) ifelse(all_gene %in% x, 1, 0)))
-  gene_rate = cbind(background, pathway_matrix)
+  pathway_col <- apply(pathway_matrix, 1, mean)
+  gene_rate = cbind(background_col, pathway_col)
   rownames(gene_rate) <- all_gene
 
   return (data.frame(gene_rate))
