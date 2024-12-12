@@ -59,6 +59,7 @@ getGeneRate <- function(background.geneset = NULL, pathway.geneset = NULL) {
   pathway_col <- apply(pathway_matrix, 1, mean)
   gene_rate = cbind(background_col, pathway_col)
   rownames(gene_rate) <- all_gene
+  colnames(gene_rate) <- c('background', 'pathway')
 
   return (data.frame(gene_rate))
 }
