@@ -23,12 +23,13 @@ computeMCA <- function(object, nmcs = 20, features = NULL, slot = "data", assay 
 #'
 #' @param background.geneset Background genesets file name (in GMT format) or R list object.
 #' @param pathway.geneset Pathway geneset, a R object of list which include tags (pathway name) and values (gene list).
+#' @param mode Pathway geneset mode, "single" means each geneset is a pathway, "multiple" means all genesets form a pathway
 #'
 #' @return A data frame include background and pathways gene rate.
 #' @export
 #'
 #' @examples
-getGeneRate <- function(background.geneset = NULL, pathway.geneset = NULL) {
+getGeneRate <- function(background.geneset = NULL, pathway.geneset = NULL, mode = "single") {
   # get background genesets
   if (class(background.geneset) == "list") {
     background_genesets <- background.geneset
@@ -56,11 +57,16 @@ getGeneRate <- function(background.geneset = NULL, pathway.geneset = NULL) {
   background_matrix <- do.call('cbind', lapply(background_genesets, function(x) all_gene %in% x))
   background_col <- apply(background_matrix, 1, mean)
   pathway_matrix <- do.call('cbind', lapply(pathway_geneset, function(x) ifelse(all_gene %in% x, 1, 0)))
-  pathway_col <- apply(pathway_matrix, 1, mean)
-  gene_rate = cbind(background_col, pathway_col)
-  rownames(gene_rate) <- all_gene
-  colnames(gene_rate) <- c('background', 'pathway')
+  if (mode == "single") {
+    gene_rate = cbind(background_col, pathway_matrix)
+    colnames(gene_rate) <- c('background', colnames(pathway_matrix))
+  } else if (mode == "multiple") {
+    pathway_col <- apply(pathway_matrix, 1, mean)
+    gene_rate = cbind(background_col, pathway_col)
+    colnames(gene_rate) <- c('background', 'pathway')
+  }
 
+  rownames(gene_rate) <- all_gene
   return (data.frame(gene_rate))
 }
 
