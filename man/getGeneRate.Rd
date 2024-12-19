@@ -4,12 +4,14 @@
 \alias{getGeneRate}
 \title{Get gene occurrence rate in background and pathway genesets}
 \usage{
-getGeneRate(background.geneset = NULL, pathway.geneset = NULL)
+getGeneRate(background.geneset = NULL, pathway.geneset = NULL, mode = "single")
 }
 \arguments{
 \item{background.geneset}{Background genesets file name (in GMT format) or R list object.}
 
 \item{pathway.geneset}{Pathway geneset, a R object of list which include tags (pathway name) and values (gene list).}
+
+\item{mode}{Pathway geneset mode, "single" means each geneset is a pathway, "multiple" means all genesets form a pathway}
 }
 \value{
 A data frame include background and pathways gene rate.
