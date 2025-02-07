@@ -19,10 +19,10 @@ install.packages("PaaSc_1.0.0.tar.gz", repos = NULL, type="source")
 
 ## Tutorial
 
-#### [Example 1: pbmc3k scRNA-seq]([https://htmlpreview.github.io/?https://github.com/yoyoong/PaaSc/blob/main/example/PaaSc_scRNAseq.html](https://jiantaoshi.github.io/PaaSc/PaaSc_scRNAseq.html))
+#### [Example 1: pbmc3k scRNA-seq](https://jiantaoshi.github.io/PaaSc/PaaSc_scRNAseq.html)
 This tutorial demonstrates a typical workflow for analyzing pathway activities in scRNA-seq data using PaaSc.
 
-#### [Example 2: mouse brain spatial RNA-seq]([https://htmlpreview.github.io/?https://github.com/yoyoong/PaaSc/blob/main/example/PaaSc_spatial.html](https://jiantaoshi.github.io/PaaSc/PaaSc_spatial.html))
+#### [Example 2: mouse brain spatial RNA-seq](https://jiantaoshi.github.io/PaaSc/PaaSc_spatial.html)
 This tutorial demonstrates a typical workflow for analyzing pathway activities in spatial RNA-seq data using PaaSc.
 
 ## References
