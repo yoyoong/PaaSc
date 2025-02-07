@@ -275,18 +275,18 @@ doBinarization <- function(score.data, n.cluster = 2, method = "GMM") {
 #' @param x A random variable (vector/factor).
 #' @param y Another random variable (vector/factor), or dataframe which each columns is a random variable.
 #' @param num_bins The number of intervals into which random variable is to be cut, default set to 20.
-#' @param num_permutations Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test. Default set to 100.
+#' @param num_permutations Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test. Default set to 1000.
 #'
 #' @return A data frame store mutual information, and pvalue if num_permutations > 0.
 #' @export
 #'
 #' @examples
-calculateMI <- function(x, y, num_bins = 20, num_permutations = 100) {
+calculateMI <- function(x, y, num_bins = 20, num_permutations = 1000) {
   if (class(y) != "data.frame") {
     y <- data.frame(y)
   }
 
-  if (length(x_bins) != nrow(y)) {
+  if (length(x) != length(y)) {
     stop("x and y must have the same length")
   }
 
@@ -320,8 +320,9 @@ calculateMI <- function(x, y, num_bins = 20, num_permutations = 100) {
       mi <- result[row, "MI"]
 
       # Calculate p-value
-      p_value <- pnorm(mi, mean = mean_val, sd = sd_val, lower.tail = FALSE)
-      result[row, "pvalue"] <- p_value
+      pvalue <- sum(permuted_mi_list > mi) / length(permuted_mi_list)
+
+      result[row, "pvalue"] <- pvalue
     }
   } else {
     result[, "pvalue"] <- NA
@@ -358,13 +359,13 @@ compute.2d.MI <- function(x_bins, y_bins) {
 #' @param y A random variable (vector/factor) on the second axis.
 #' @param z The random variable (vector/factor) or dataframe (each columns is a random variable) to be calculate spatial mutual information to x and y.
 #' @param num_bins The number of intervals into which x, y and z is to be cut, default set to 20.
-#' @param num_permutations Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test. Default set to 100.
+#' @param num_permutations Number of permutations to use, if greater than 0, compute empirical p-values using a permutation test. Default set to 1000.
 #'
 #' @return A data frame store spatial mutual information, and pvalue if num_permutations > 0.
 #' @export
 #'
 #' @examples
-calculateSpatialMI <- function(x, y, z, num_bins = 20, num_permutations = 100) {
+calculateSpatialMI <- function(x, y, z, num_bins = 20, num_permutations = 1000) {
   if (class(z) != "data.frame") {
     z <- data.frame(z)
   }
@@ -405,8 +406,8 @@ calculateSpatialMI <- function(x, y, z, num_bins = 20, num_permutations = 100) {
       mi <- result[row, "MI"]
 
       # Calculate p-value
-      p_value <- pnorm(mi, mean = mean_val, sd = sd_val, lower.tail = FALSE)
-      result[row, "pvalue"] <- p_value
+      pvalue <- sum(permuted_mi_list > mi) / length(permuted_mi_list)
+      result[row, "pvalue"] <- pvalue
     }
   } else {
     result[, "pvalue"] <- NA
